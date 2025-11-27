@@ -1,352 +1,288 @@
-# Encrypted Player Registry · Zama FHEVM
+# Encrypted OG Roles
 
-A minimal demo dApp that showcases how to build a privacy‑preserving player registry on top of the **Zama FHEVM**.
+Privacy–preserving OG role assignment for onchain communities, built on **Zama FHEVM**.
 
-Each player registers with:
+Members submit **encrypted contribution scores** for a given badge ID. The smart contract holds an **encrypted minimum threshold** per badge and computes whether the member qualifies as OG **fully under FHE**. Nobody (including the contract owner) ever sees raw contribution numbers on‑chain.
 
-* a **public name** stored in plaintext (for leaderboards / UX), and
-* a **fully homomorphic encrypted age** stored as an `euint8` in the smart contract.
-
-The age is never revealed on-chain in clear form. The player can decrypt their own age off‑chain using the **Relayer SDK 0.2.0** and an EIP‑712 signature.
+The frontend uses Zama’s **Relayer SDK** so that each user can privately decrypt their own OG flag via `userDecrypt`. There is **no public certificate** in this project – OG status is visible only to the wallet owner.
 
 ---
 
-## Tech stack
+## Table of contents
 
-* **Smart contract**: Solidity `^0.8.24`
+* [Concept](#concept)
+* [How OG evaluation works](#how-og-evaluation-works)
+* [Smart contract](#smart-contract)
 
-  * `@fhevm/solidity` (Zama FHE library)
-  * `SepoliaConfig` from Zama FHEVM config
-* **Frontend**: single‑page HTML app
+  * [Contract address](#contract-address)
+  * [Interface](#interface)
+  * [Access control](#access-control)
+* [Frontend](#frontend)
 
-  * `@zama-fhe/relayer-sdk` **0.2.0** (browser build)
-  * `ethers` **v6** (ESM, `BrowserProvider`, `Contract`)
-* **Network**: Sepolia FHEVM (testnet)
-* **Tooling**: Hardhat + hardhat‑deploy (backend), static web server (frontend)
+  * [Member flow](#member-flow)
+  * [Admin flow](#admin-flow)
+* [Project structure](#project-structure)
+* [Development & local setup](#development--local-setup)
+* [Security & privacy notes](#security--privacy-notes)
 
-Frontend entry point lives at:
+---
+
+## Concept
+
+**Goal:** allow communities to assign *OG roles* based on early / meaningful contribution, without ever revealing the exact contribution numbers on‑chain.
+
+* Each **badge** (e.g. `Wave #1`, `Early Builder`, `Genesis Farmer`) has an **encrypted minimum contribution threshold**.
+* Members submit their contribution score **encrypted**.
+* The contract compares *encrypted contribution* vs *encrypted threshold* using Zama’s FHE operations.
+* The result is an **encrypted boolean OG flag** stored per `(member, badgeId)`.
+* Members decrypt their own flag via `userDecrypt` in the frontend.
+
+No one can see actual contribution numbers on-chain, and there’s no public OG certificate – OG status is *personal*.
+
+---
+
+## How OG evaluation works
+
+High‑level protocol:
+
+1. **Admin encrypts OG threshold**
+
+   * Off‑chain, using Relayer SDK, admin creates an encrypted input for the contract with `add32(minContribution)`.
+   * Gateway returns a `bytes32` handle + proof.
+   * Admin calls `createOgBadge` or `updateOgBadge` with `encMinScore` + `proof`.
+   * Contract stores `eMinScore` as an encrypted `euint32` and keeps decryption rights via FHE ACL.
+
+2. **Member submits encrypted contribution**
+
+   * Member encrypts their contribution score via Relayer SDK with `add32(contribution)`.
+   * Calls `evaluateOgStatus(badgeId, encContribution, proof)`.
+   * Contract ingests `encContribution` and evaluates:
+
+     * `eIsOg = FHE.ge(eContribution, eMinScore)`
+   * Encrypted result (`eIsOg`) is stored in a mapping alongside `eContribution`.
+
+3. **Member decrypts OG flag**
+
+   * Frontend calls `getMyOgStatusHandles(badgeId)` → returns:
+
+     * `contributionHandle` (encrypted contribution)
+     * `ogFlagHandle` (encrypted OG boolean)
+     * `decided` (whether any attempt was processed)
+   * Frontend passes both handles to `userDecrypt` with a short‑lived keypair and EIP‑712 signature.
+   * SDK returns decrypted values client‑side; frontend converts the OG flag into a simple `OG / not OG` label.
+
+All comparisons and decisions happen on-chain in encrypted space. Only the user ever sees their cleartext OG status.
+
+---
+
+## Smart contract
+
+### Contract address
+
+Deployed on **Ethereum Sepolia**:
 
 ```text
-frontend/public/index.html
+0xDF1b0dD09d05E196b74605F8b203c07a2027f2Ac
 ```
+
+### Interface
+
+The contract is built on top of **Zama FHEVM** (`FHE.sol` + `ZamaEthereumConfig`) and exposes a small, focused API.
+
+#### Admin (owner‑only)
+
+* `createOgBadge(uint256 badgeId, externalEuint32 encMinScore, bytes proof)`
+
+  * Creates a new OG badge with an encrypted minimum contribution threshold.
+  * Fails if `badgeId` already exists.
+* `updateOgBadge(uint256 badgeId, externalEuint32 encMinScore, bytes proof)`
+
+  * Updates the encrypted minimum contribution threshold for an existing badge.
+* `getBadgePolicyHandle(uint256 badgeId) external view onlyOwner returns (bytes32)`
+
+  * Returns the handle of the encrypted minimum score for off‑chain analytics or checks.
+
+#### Member actions
+
+* `evaluateOgStatus(uint256 badgeId, externalEuint32 encContribution, bytes proof)`
+
+  * Ingests the member’s encrypted contribution for a given badge.
+  * Computes an encrypted OG flag under FHE and stores `(eContribution, eIsOg, decided)`.
+* `getMyOgStatusHandles(uint256 badgeId) external view returns (bytes32 contributionHandle, bytes32 ogFlagHandle, bool decided)`
+
+  * Returns the ciphertext handles for the caller’s contribution and OG flag for this badge.
+
+#### Metadata
+
+* `getBadgeMeta(uint256 badgeId) external view returns (bool exists)`
+
+  * Simple existence check for badge configuration (no FHE ops).
+
+#### Ownership
+
+* `owner() external view returns (address)`
+* `transferOwnership(address newOwner) external onlyOwner`
+
+Access control is implemented via `onlyOwner` and FHE ACLs (`FHE.allow`, `FHE.allowThis`) inside the contract.
+
+> **Note:** The actual Solidity file uses `euint32` / `externalEuint32` types and FHE operations from Zama’s official libraries. All view functions only expose handles (no FHE computation in views).
 
 ---
 
-## Main idea
+## Frontend
 
-The dApp demonstrates a simple pattern for Zama FHEVM:
+The frontend is a single‑page app (`index.html`) using:
 
-1. The user encrypts sensitive data (age) **in the browser** using the Relayer SDK.
-2. The encrypted value is sent to the smart contract as an `externalEuint8` handle + `proof`.
-3. The contract converts this into an `euint8` and stores it in state.
-4. The user can later:
+* **Ethers v6** (BrowserProvider + Contract) over `window.ethereum` (Metamask, etc.)
+* **Zama Relayer SDK JS** `0.3.0-5` for:
 
-   * Inspect the **encrypted age handle** on-chain, and
-   * Use **userDecrypt** with an EIP‑712 signature to recover their age off‑chain.
+  * Encrypted inputs (`createEncryptedInput` + `add32`)
+  * `userDecrypt` for per‑user decryption
 
-This pattern is reusable for any “profile with private fields” system.
+It is intentionally UI‑heavy and dependency‑light (pure HTML + CSS + vanilla JS). All cryptographic heavy lifting is done by the Relayer SDK and Zama FHEVM.
 
----
+### Member flow
 
-## Smart contract overview
-
-Contract name: `EncryptedPlayerRegistry`
-
-Key properties:
-
-* Uses only official Zama FHE Solidity library:
-
-  * `import { FHE, euint8, externalEuint8 } from "@fhevm/solidity/lib/FHE.sol";`
-* Extends `SepoliaConfig` for the FHEVM network configuration.
-* Encrypted fields are always stored as `euint8` and **never decrypted on-chain**.
-* Access control over ciphertexts is handled via:
-
-  * `FHE.allowThis(ciphertext)`
-  * `FHE.allow(ciphertext, user)`
-  * `FHE.makePubliclyDecryptable(ciphertext)` for opt‑in public auditability.
-
-### Storage
-
-```solidity
-struct Player {
-    bool exists;   // registration flag
-    string name;   // public display name
-    euint8 age;    // encrypted age
-}
-
-mapping(address => Player) private _players;
-address public owner;
-```
-
-* `name` is stored in the clear.
-* `age` is an encrypted `euint8`.
-
-### Public / player functions
-
-* `registerEncrypted(string name, externalEuint8 ageExt, bytes proof)`
-
-  * Encrypt age in the browser using the Relayer SDK.
-  * Call this function with the encrypted handle and proof.
-  * Contract:
-
-    * calls `FHE.fromExternal(ageExt, proof)` → `euint8` ciphertext;
-    * stores it in `_players[msg.sender].age`;
-    * uses `FHE.allowThis` and `FHE.allow(ciphertext, msg.sender)`.
-
-* `registerPlain(string name, uint8 agePlain)`
-
-  * Dev/demo helper.
-  * Converts plaintext `agePlain` into ciphertext using `FHE.asEuint8` on-chain.
-
-* `updateName(string newName)`
-
-  * Updates only the public `name` field.
-
-* `updateAgeEncrypted(externalEuint8 newAgeExt, bytes proof)`
-
-  * Updates only the encrypted age.
-
-* `isRegistered(address player) -> bool`
-
-  * Returns whether a player has a profile.
-
-* `getPlayer(address player) -> (bool exists, string name, bytes32 ageHandle)`
-
-  * Returns profile metadata and the encrypted age handle (`bytes32`).
-  * `ageHandle` can be fed to public decryption or user decryption off-chain.
-
-* `getMyAgeHandle() -> bytes32`
-
-  * Convenience method to fetch the `bytes32` handle for `msg.sender`’s age.
-
-* `makeMyAgePublic()`
-
-  * Calls `FHE.makePubliclyDecryptable(_players[msg.sender].age)`.
-  * Allows anyone to call `publicDecrypt` on the ciphertext.
-
-### Owner/admin functions
-
-* `owner` / `transferOwnership(address newOwner)`
-
-  * Standard ownership pattern.
-
-* `makePlayerAgePublic(address player)`
-
-  * For audits / demos, owner can force a player’s age to be publicly decryptable.
-
-* `clearPlayer(address player)`
-
-  * Logically clears a player profile.
-  * Sets `exists = false`, wipes `name`, and replaces age with `FHE.asEuint8(0)`.
-  * Avoids using `delete` on `euint8` (not supported).
-
----
-
-## Frontend overview
-
-The frontend is a single `index.html` with:
-
-* A **three‑column layout**:
-
-  * Player onboarding (name + encrypted age).
-  * “My profile” section (view profile, update name/age, decrypt age).
-  * Owner console (mark ages public / clear profiles).
-* A **dark neon UI** designed to be visually distinct from other demos.
-* Uses **Relayer SDK 0.2.0** and **ethers v6** via ESM CDNs.
-
-Key flows:
-
-### 1. Connect wallet & Relayer
-
-* Uses `BrowserProvider(window.ethereum)` from ethers v6.
-* Automatically switches to Sepolia (chain id `0xaa36a7`).
-* Initializes the Relayer with:
-
-```ts
-await initSDK();
-relayer = await createInstance({
-  ...SepoliaConfig,
-  relayerUrl: "https://relayer.testnet.zama.cloud",
-  network: window.ethereum,
-  debug: true,
-});
-```
-
-### 2. Encrypted registration
-
-* User enters `name` + `age`.
-* Frontend calls:
-
-```ts
-const input = relayer.createEncryptedInput(CONTRACT_ADDRESS, user);
-input.add8(age);                      // age is uint8
-const { handles, inputProof } = await input.encrypt();
-
-await contract.registerEncrypted(name, handles[0], inputProof);
-```
-
-### 3. Decrypting age (userDecrypt)
-
-* Frontend calls `getMyAgeHandle()`.
-* Generates an ephemeral keypair with `generateKeypair()`.
-* Builds EIP‑712 data via `relayer.createEIP712(...)`.
-* Uses `signer.signTypedData(...)` (EIP‑712) and then:
-
-```ts
-const pairs = [{ handle, contractAddress: CONTRACT_ADDRESS }];
-const result = await relayer.userDecrypt(
-  pairs,
-  kp.privateKey,
-  kp.publicKey,
-  sig.replace("0x", ""),
-  [CONTRACT_ADDRESS],
-  user,
-  startTs,
-  daysValid,
-);
-```
-
-* Displays the decrypted age **only in the UI**, never sending it back on-chain.
-
----
-
-## Project layout
-
-A minimal layout (simplified):
-
-```text
-.
-├── contracts/
-│   └── EncryptedPlayerRegistry.sol
-├── frontend/
-│   └── public/
-│       └── index.html   # the SPA described above
-├── deploy/
-│   └── universal-deploy.ts
-├── hardhat.config.ts
-├── package.json
-└── README.md
-```
-
----
-
-## Installation & setup
-
-### 1. Clone & install dependencies
-
-```bash
-git clone &lt;this-repo-url&gt;
-cd &lt;this-repo-folder&gt;
-
-# Install backend deps (Hardhat, hardhat-deploy, etc.)
-npm install
-```
-
-If the frontend uses its own `package.json` inside `frontend/`, also run:
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
-### 2. Environment variables (Hardhat)
-
-In the project root, create a `.env` file (or update an existing one):
-
-```bash
-SEPOLIA_RPC_URL=https://&lt;your-sepolia-rpc&gt;
-PRIVATE_KEY=0x&lt;your_deployer_private_key&gt;
-
-# Optional for universal-deploy
-CONTRACT_NAME=EncryptedPlayerRegistry
-CONSTRUCTOR_ARGS='[]'
-```
-
-> **Note:** never commit real private keys to Git. Use environment variables or a secure secret manager.
-
-### 3. Compile & deploy the contract
-
-```bash
-npx hardhat clean
-npx hardhat compile
-npx hardhat deploy --network sepolia
-```
-
-If you use the provided `universal-deploy.ts` script, it will pick up `CONTRACT_NAME` and `CONSTRUCTOR_ARGS` automatically.
-
-Make sure the deployed address matches the one used by the frontend (`CONTRACT_ADDRESS` constant in `index.html`).
-
----
-
-## Running the frontend
-
-Since the frontend is a static HTML SPA using WASM and `Cross-Origin-Opener-Policy`, you should serve it via a local HTTP server (not via `file://`).
-
-From the project root:
-
-```bash
-cd frontend/public
-
-# Simple option: use serve (no config needed)
-npx serve .
-
-# or, if you prefer http-server
-# npx http-server .
-```
-
-Then open the printed URL in your browser (e.g. [http://localhost:3000](http://localhost:3000) or [http://127.0.0.1:8080](http://127.0.0.1:8080)).
-
-Requirements:
-
-* Browser with EIP‑1193 wallet (MetaMask, Rabby…) connected to **Sepolia**.
-* Zama FHEVM RPC configured in your wallet / Hardhat.
-
----
-
-## How to use the dApp
+From the user’s perspective:
 
 1. **Connect wallet**
 
-   * Click **“Connect wallet”** in the header.
-   * Approve network switch to Sepolia if prompted.
+   * Click `Connect wallet`.
+   * App ensures you are on Sepolia (auto‑switch / add network if needed).
 
-2. **Register as a player**
+2. **Submit encrypted contribution**
 
-   * In **“Player onboarding”** panel:
+   * Enter a `Badge ID` (e.g. `1` for Wave 1 OG).
+   * Enter your `Contribution score`.
+   * Click **“Encrypt & submit”**.
+   * Frontend:
 
-     * Enter a public display name.
-     * Enter your age (0–255).
-     * Click **“Encrypt & register”**.
-   * Wait for the transaction to confirm.
+     * Encrypts the score off‑chain via Relayer (`add32(contribution)`).
+     * Sends `evaluateOgStatus(badgeId, handle, proof)`.
 
-3. **Inspect your profile**
+3. **Decrypt OG status**
 
-   * In **“My profile”** panel, click **“Load my profile”**.
-   * You will see:
+   * After the transaction confirms, click **“Decrypt my OG status”**.
+   * Frontend:
 
-     * Your name, and
-     * Your encrypted age handle (`bytes32`).
+     * Calls `getMyOgStatusHandles(badgeId)` to fetch handles.
+     * Builds a `userDecrypt` request with a short‑lived keypair and EIP‑712 signature.
+     * Interprets the result via `normalizeDecryptedValue` and displays:
 
-4. **Decrypt your age**
+       * `OG (true)` or `not OG (false)`
+       * The raw cipher handle for debugging.
 
-   * Click **“Private decrypt via Relayer”**.
-   * Sign the EIP‑712 message in your wallet.
-   * The decrypted age will appear as a pill in the UI, visible only in your browser.
+All decrypted values are kept in memory and never sent to the contract.
 
-5. **Owner tools (optional)**
+### Admin flow
 
-   * If connected as `owner`:
+Visible in the right‑hand panel when the connected address is the contract owner.
 
-     * Use **“Make age public”** for a target address to enable public decryption.
-     * Use **“Clear profile”** to logically clear a user profile.
+1. **Configure / update a badge**
+
+   * Set `Badge ID`.
+   * Set `Minimum contribution to be OG` (cleartext in the admin UI, but encrypted before on‑chain).
+   * Click **“Encrypt & create / update badge”**.
+   * Frontend:
+
+     * Encrypts the threshold using Relayer (`add32(minContribution)`).
+     * Calls `createOgBadge` if badge doesn’t exist yet, otherwise `updateOgBadge`.
+
+2. **Iterate**
+
+   * You can adjust thresholds at any time; badge definitions are flexible and do not leak clear thresholds on‑chain.
 
 ---
 
+## Project structure
 
+Suggested repo layout:
+
+```text
+.
+├─ contracts/
+│  └─ EncryptedOgRoles.sol        # FHEVM smart contract for OG role evaluation
+├─ frontend/
+│  └─ index.html                  # Single-page frontend (HTML + CSS + JS)
+├─ README.md                      # This file
+└─ package.json                   # (optional) scripts for tooling / linters
+```
+
+If you use Hardhat / Foundry, a typical Hardhat layout might look like:
+
+```text
+contracts/EncryptedOgRoles.sol
+scripts/deploy.ts
+hardhat.config.ts
+frontend/index.html
+```
+
+Adapt to your toolchain as needed.
 
 ---
 
-## License
+## Development & local setup
 
-MIT — feel free to fork, adapt and extend for your own Zama FHEVM demos.
+### Requirements
+
+* Node.js (LTS)
+* A browser wallet (MetaMask) connected to **Ethereum Sepolia**
+* A running instance of Zama’s **Relayer** and **Gateway**, or the official public testnet endpoints
+
+### Run frontend locally
+
+From the `frontend` folder:
+
+```bash
+# Simple static server (example with npx)
+npx serve .
+```
+
+Then open:
+
+```text
+http://localhost:3000
+# or whatever port your static server uses
+```
+
+If you proxy Relayer/Gateway via localhost, the frontend will automatically use:
+
+* `https://localhost:3443/relayer`
+* `https://localhost:3443/gateway`
+
+Otherwise it falls back to Zama’s public testnet endpoints.
+
+### Deploy contract (example with Hardhat)
+
+Very high‑level sketch:
+
+```ts
+// scripts/deploy.ts
+const factory = await ethers.getContractFactory("EncryptedOgRoles");
+const contract = await factory.deploy();
+await contract.waitForDeployment();
+console.log("EncryptedOgRoles deployed at", await contract.getAddress());
+```
+
+Update the address in `frontend/index.html` (`CONTRACT_ADDRESS`) after deployment.
+
+---
+
+## Security & privacy notes
+
+* The contract never stores raw numbers – only **encrypted `euint32` contributions** and **encrypted `ebool` OG flags**.
+* All comparisons (`>= threshold`) are performed via `FHE.ge` under encryption.
+* Views only return **handles**, not cleartext values.
+* Decryption is always opt‑in and **per‑user**, using `userDecrypt` with EIP‑712 signing.
+* There is **no public OG certificate** in this design; OG status is private to each wallet.
+
+If you extend the protocol (e.g. add public badges, leaderboards, or cross‑contract checks), keep these principles:
+
+1. No FHE operations in `view` / `pure` functions.
+2. Only ever expose encrypted handles from on‑chain state.
+3. Use `FHE.allowThis`, `FHE.allow`, and `FHE.allowTransient` appropriately to control who can decrypt.
+4. Keep any JSON/logging that touches `BigInt` safe by using a custom `JSON.stringify` replacer (as implemented in the frontend).
+
+---
+
+Happy building, and feel free to adapt this OG roles primitive to your own community logic (tiers, seasons, multi‑badge progressions, etc.) while keeping contributions fully private.

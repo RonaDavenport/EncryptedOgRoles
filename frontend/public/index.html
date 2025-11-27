@@ -2,341 +2,1302 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>ZAMA • FHEVM — Partner Tariff Gate</title>
+  <title>Encrypted OG Roles</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="dark" />
+
+  <!-- Required for Relayer SDK (WASM/Workers) -->
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin" />
   <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp" />
+
   <style>
-    :root{ --bg:#0b0f1a; --bg2:#090e18; --ink:#eaf1ff; --muted:#b6c4e3; --card:#0f1728; --br:#1a2540; --glow:rgba(56,189,248,.18); --accent:#2f66ff; --accent-2:#2553e6; --ok:#7ef29a; --bad:#ff8b8b; }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{ margin:0; color:var(--ink);
-      background: radial-gradient(60% 40% at 50% -10%, #0f1a33 0%, transparent 70%), linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
-      font:15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial;}
-    .wrap{max-width:1180px; margin:30px auto; padding:0 18px; display:grid; gap:18px; grid-template-columns: 1.1fr .9fr}
-    .spacer{flex:1} .pill{padding:6px 10px; border:1px solid var(--br); border-radius:10px; background:linear-gradient(to bottom, rgba(255,255,255,.03), transparent 30%), linear-gradient(150deg, #182033, #060a16); color:#cfe0ff; font-weight:800; white-space:nowrap}
-    .title{font-size:22px; font-weight:900}
-    .card{border:1px solid var(--br); border-radius:16px; background:radial-gradient(circle at top center, var(--glow) 0, rgba(15,23,42,.96) 36%, #020617 70%); box-shadow:0 1px 0 rgba(15,23,42,.9), 0 28px 60px rgba(0,0,0,.8), 0 0 36px var(--glow);}    
-    .card .hd{padding:14px 16px; border-bottom:1px solid var(--br); display:flex; align-items:center; gap:10px}
-    .card .bd{padding:14px 16px;}
-    .grid{display:grid; gap:12px} .grid.cols-2{grid-template-columns:1fr 1fr}
-    label{font-size:12px; color:#9db1e8; text-transform:uppercase; letter-spacing:.06em; font-weight:800; display:block; margin-bottom:6px}
-    input{width:100%; padding:12px; border-radius:12px; border:1px solid var(--br); background:#0b1220; color:var(--ink); font-weight:800; outline:none}
-    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:42px; padding:10px 14px; border-radius:12px; border:1px solid rgba(31,41,55,.9); color:var(--ink); font-weight:900; cursor:pointer; background:linear-gradient(to bottom, rgba(255,255,255,.06), transparent 32%), linear-gradient(145deg, #1f2933, #020617); box-shadow:0 0 0 1px rgba(15,23,42,.9), 0 14px 30px rgba(0,0,0,.7), 0 0 26px var(--glow);}    
-    .btn:hover{transform:translateY(-1px); box-shadow:0 0 0 1px rgba(15,23,42,1), 0 18px 40px rgba(0,0,0,.85), 0 0 30px rgba(56,189,248,.35)}
-    .btn[disabled]{opacity:.55; cursor:not-allowed} .btn.primary{background:linear-gradient(180deg, var(--accent) 0%, var(--accent-2) 100%); box-shadow:0 14px 40px rgba(47,102,255,.28), inset 0 0 0 1px rgba(255,255,255,.05)}
-    .kv{display:grid; grid-template-columns:140px 1fr; gap:8px; align-items:center}
-    .mono{font-family:ui-monospace, Menlo, Consolas, 'Courier New', monospace} .muted{color:var(--muted)} .ok{color:var(--ok)} .bad{color:var(--bad)}
-    .sep{height:1px; background:var(--br); margin:8px 0} .footer{grid-column:1/-1; text-align:center; color:#9db1e8; opacity:.85; padding:8px}
-    .row-actions{display:flex; gap:10px; flex-wrap:wrap}
-    .result-box{padding:10px 12px; border:1px solid var(--br); border-radius:12px; background:linear-gradient(to bottom, rgba(255,255,255,.03), transparent 32%), linear-gradient(145deg, #132035, #020617);}    
-    .tag{display:inline-block; padding:2px 8px; border-radius:10px; border:1px solid var(--br); background:#0b1424; color:#cfe0ff; font-size:12px; font-weight:800}
-    .row-split{display:grid; grid-template-columns:1fr auto; gap:10px; align-items:center} .small{font-size:12px}
+    :root {
+      --bg: #f4f5fb;
+      --bg-strong: #e5e7f2;
+      --card: #ffffff;
+      --card-soft: #f9fafb;
+      --border-subtle: #e5e7eb;
+      --border-strong: #cbd5e1;
+      --ink: #0f172a;
+      --ink-soft: #4b5563;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --accent-soft: #e0edff;
+      --accent-strong: #1d4ed8;
+      --success: #16a34a;
+      --success-soft: #dcfce7;
+      --danger: #dc2626;
+      --danger-soft: #fee2e2;
+      --radius-xl: 20px;
+      --radius-lg: 14px;
+      --radius-md: 10px;
+      --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.15);
+      --shadow-subtle: 0 10px 25px rgba(15, 23, 42, 0.08);
+      --sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+    }
+
+    body {
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 0% 0%, rgba(37, 99, 235, 0.08), transparent 55%),
+        radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.08), transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* HEADER */
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow-subtle);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(8px);
+    }
+
+    .header-main {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #2563eb, #38bdf8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      font-weight: 700;
+      font-size: 18px;
+      box-shadow: 0 12px 25px rgba(37, 99, 235, 0.45);
+    }
+
+    .header-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 360px;
+    }
+
+    .header-status {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .chip {
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--card-soft);
+      padding: 4px 10px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+    }
+
+    .chip-label {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .chip code {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--ink-soft);
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #ffffff;
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(37, 99, 235, 0.45);
+      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out, background 0.1s ease-out, border-color 0.1s ease-out, opacity 0.1s ease-out;
+      white-space: nowrap;
+    }
+
+    .btn-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 5px rgba(34, 197, 94, 0.25);
+    }
+
+    .btn.secondary {
+      background: #ffffff;
+      color: var(--ink-soft);
+      border-color: var(--border-strong);
+      box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+    }
+
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 36px rgba(37, 99, 235, 0.4);
+      background: var(--accent-strong);
+      border-color: var(--accent-strong);
+    }
+
+    .btn.secondary:hover:not(:disabled) {
+      background: var(--card-soft);
+      border-color: var(--accent);
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.12);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* LAYOUT */
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: 18px;
+      align-items: flex-start;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .header-status {
+        justify-content: flex-start;
+      }
+    }
+
+    /* CARDS */
+
+    .card {
+      background: #ffffff;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-soft);
+      border: 1px solid var(--border-subtle);
+      padding: 16px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+    }
+
+    .card-title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 0;
+    }
+
+    .card-kicker {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 520px;
+    }
+
+    .status-pill {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      border: 1px solid var(--border-strong);
+      background: var(--card-soft);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .status-pill.ok {
+      border-color: var(--success);
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .status-pill.warn {
+      border-color: #f97316;
+      background: #ffedd5;
+      color: #c2410c;
+    }
+
+    .card-body {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .card-body strong {
+      color: var(--ink);
+    }
+
+    .card-section {
+      border-radius: var(--radius-lg);
+      background: var(--card-soft);
+      border: 1px dashed var(--border-subtle);
+      padding: 10px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .field {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .field.sm {
+      flex: 0 0 120px;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .field-label span.badge {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      border-radius: 999px;
+      padding: 1px 5px;
+      border: 1px solid var(--border-strong);
+      color: var(--muted);
+      background: #ffffff;
+    }
+
+    .input-shell {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-strong);
+      background: #ffffff;
+      padding: 6px 9px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .input-shell input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--ink);
+      width: 100%;
+      padding: 1px 0;
+    }
+
+    .input-shell input::placeholder {
+      color: #9ca3af;
+    }
+
+    .input-unit {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .helper {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .helper.error {
+      color: var(--danger);
+    }
+
+    .helper.success {
+      color: var(--success);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .result-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: #ffffff;
+      padding: 8px 9px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+    }
+
+    .result-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--muted);
+    }
+
+    .result-value {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--ink);
+    }
+
+    .result-value.good {
+      color: var(--success);
+    }
+
+    .result-value.bad {
+      color: var(--danger);
+    }
+
+    .result-handle {
+      font-size: 10px;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    .note-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .note-row strong {
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    .mono {
+      font-family: var(--mono);
+    }
+
+    .side-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .side-card {
+      background: #ffffff;
+      border-radius: var(--radius-xl);
+      padding: 14px 16px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .side-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .side-title {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .side-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--accent);
+      background: var(--card-soft);
+    }
+
+    .admin-role-pill {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 3px 9px;
+      border: 1px solid var(--border-strong);
+      background: var(--card-soft);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+    }
+
+    .admin-role-pill.owner {
+      border-color: var(--success);
+      background: var(--success-soft);
+      color: var(--success);
+    }
+
+    .side-body {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .side-body ul {
+      margin: 0;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .side-footer {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .side-footer strong {
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="card">
-      <div class="hd">
-        <div class="title">Partner Tariff Gate</div>
-        <span class="pill">ZAMA · FHEVM</span>
-        <span class="spacer"></span>
-        <span class="pill" id="net-pill">Network: —</span>
-        <button class="btn" id="btn-connect">Connect</button>
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="header-main">
+        <div class="logo">OG</div>
+        <div class="header-texts">
+          <div class="header-title">Encrypted OG Roles</div>
+          <div class="header-subtitle">
+            Private community role assignment on Zama FHEVM — qualify as OG without leaking your exact contribution.
+          </div>
+        </div>
       </div>
-      <div class="bd grid">
-        <div class="card">
-          <div class="hd"><b>Eligibility · Encrypted user input</b></div>
-          <div class="bd grid">
-            <div class="result-box" id="decisionBox">Decision: <span class="tag">n/a</span></div>
+      <div class="header-status">
+        <div class="chip">
+          <span class="chip-label">Network</span>
+          <code id="netLabel">—</code>
+        </div>
+        <div class="chip">
+          <span class="chip-label">Contract</span>
+          <code id="contractLabel">—</code>
+        </div>
+        <div class="chip">
+          <span class="chip-label">You</span>
+          <code id="accountLabel">not connected</code>
+        </div>
+        <button id="connectBtn" class="btn">
+          <span class="btn-pill-dot"></span>
+          <span id="connectBtnLabel">Connect wallet</span>
+        </button>
+      </div>
+    </header>
 
-            <div class="grid cols-2">
-              <div><label>Plan ID</label><input id="planId" type="number" min="1" value="1" /></div>
-              <div></div>
-              <div><label>KYC level (u8)</label><input id="kyc" type="number" min="0" max="255" value="3" /></div>
-              <div><label>Tenure days (u16)</label><input id="tenure" type="number" min="0" max="65535" value="45" /></div>
-              <div><label>Trade volume (u32)</label><input id="volume" type="number" min="0" max="4294967295" value="1500" /></div>
-              <div style="display:flex;align-items:flex-end;justify-content:flex-end">
-                <button class="btn primary" id="btn-eval">Encrypt &amp; Evaluate</button>
-              </div>
+    <div class="layout">
+      <!-- LEFT: user flow -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title-block">
+            <div class="card-kicker">Member view</div>
+            <div class="card-title">Submit contribution & decrypt OG status</div>
+            <div class="card-subtitle">
+              Send an encrypted contribution score for a chosen badge ID. The contract evaluates OG / non-OG fully under FHE. You decrypt your own result locally.
             </div>
-
-            <div>
-              <label>Handle</label>
-              <div class="row-split">
-                <input id="handleOut" class="mono small" readonly placeholder="—" />
-                <button class="btn" id="btn-copy">Copy</button>
-              </div>
-            </div>
-
-            <div class="row-actions">
-              <button class="btn" id="btn-make-public">Make my decision public</button>
-              <button class="btn" id="btn-public-decrypt">Decrypt (public)</button>
-              <button class="btn" id="btn-user-decrypt">Decrypt (signed)</button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;min-width:0;">
+            <span id="decryptTag" class="status-pill warn">private decrypt: HTTPS recommended</span>
+            <span id="badgeMetaTag" class="status-pill">badge: n/a</span>
+            <div style="font-size:11px;color:var(--muted);max-width:220px;text-align:right;">
+              Contract: <span id="contractFullLabel" class="mono">0x…</span>
             </div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="hd"><b>Admin · Set encrypted policy</b> <span class="pill" id="isOwnerPill" style="margin-left:8px">owner: —</span></div>
-          <div class="bd grid cols-2">
-            <div><label>Plan ID</label><input id="p-plan" type="number" min="1" value="1" /></div>
-            <div><label>minKycLevel (u8)</label><input id="p-kyc" type="number" min="0" max="255" value="2" /></div>
-            <div><label>minTenureDays (u16)</label><input id="p-tenure" type="number" min="0" max="65535" value="30" /></div>
-            <div><label>minTradeVolumeUsd (u32)</label><input id="p-volume" type="number" min="0" max="4294967295" value="1000" /></div>
-            <div><label>minPassRules (u8)</label><input id="p-pass" type="number" min="1" max="3" value="2" /></div>
-            <div style="display:flex;align-items:flex-end"><button class="btn" id="btn-set-policy">Set encrypted policy</button></div>
+        <div class="card-section">
+          <div class="field-row">
+            <div class="field sm">
+              <div class="field-label">
+                Badge ID
+                <span class="badge">uint256</span>
+              </div>
+              <div class="input-shell">
+                <input id="userBadgeId" type="number" min="1" placeholder="e.g. 1" />
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label">
+                Contribution score
+                <span class="badge">uint32 · encrypted</span>
+              </div>
+              <div class="input-shell">
+                <input id="userContribution" type="number" min="0" max="4294967295" placeholder="e.g. 1200" />
+                <span class="input-unit">points</span>
+              </div>
+            </div>
+            <button id="submitContributionBtn" class="btn secondary" style="flex:0 0 auto;">
+              Encrypt &amp; submit
+            </button>
+          </div>
+          <div id="userSubmitStatus" class="helper"></div>
+        </div>
+
+        <div class="card-section">
+          <div class="field-row" style="justify-content: space-between;align-items:center;">
+            <div class="helper" style="max-width:65%;">
+              After your transaction is confirmed, decrypt your OG flag with an EIP-712 signature via the Relayer SDK. Only you see the cleartext status.
+            </div>
+            <button id="decryptStatusBtn" class="btn secondary" style="flex:0 0 auto;">
+              Decrypt my OG status
+            </button>
+          </div>
+
+          <div class="results-grid" style="margin-top:6px;">
+            <div class="result-card">
+              <div class="result-label">Last decrypted OG flag</div>
+              <div id="resultOgFlag" class="result-value">—</div>
+              <div id="resultOgFlagHandle" class="result-handle">Handle: —</div>
+            </div>
+          </div>
+
+          <div class="note-row" style="margin-top:6px;">
+            <span>
+              <strong>On-chain:</strong> the contract stores an encrypted contribution and an encrypted boolean OG flag per badge.
+            </span>
+            <span id="localOgNote"></span>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <aside class="card">
-      <div class="hd"><b>Contract</b></div>
-      <div class="bd grid">
-        <div class="kv"><div class="muted">Address:</div><div class="mono" id="caddr">—</div></div>
-        <div class="kv"><div class="muted">Owner:</div><div class="mono" id="cowner">—</div></div>
-        <div class="kv"><div class="muted">Relayer:</div><div id="relayerState">not ready</div></div>
-        <div class="sep"></div>
-        <div class="kv"><div class="muted">Your account:</div><div class="mono" id="acc">—</div></div>
-        <div class="kv"><div class="muted">Eligibility handle:</div><div class="mono" id="lastHandle">—</div></div>
-      </div>
-    </aside>
+      <!-- RIGHT: admin + explainer -->
+      <aside class="side-stack">
+        <section class="side-card">
+          <div class="side-header">
+            <div class="side-title">
+              <span class="side-icon">A</span>
+              Admin · Configure OG badges
+            </div>
+            <span id="adminRoleTag" class="admin-role-pill">role: unknown</span>
+          </div>
+          <div class="side-body">
+            As the contract owner, define which encrypted contribution threshold qualifies for each OG badge. Threshold values remain encrypted end-to-end.
+          </div>
 
-    <div class="footer">ZAMA FHEVM · Partner Tariff Gate — Single-file demo (Sepolia)</div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px;">
+            <div class="field">
+              <div class="field-label">Badge ID</div>
+              <div class="input-shell">
+                <input id="adminBadgeId" type="number" min="1" placeholder="e.g. 1 (Wave One)" />
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label">
+                Minimum contribution to be OG
+                <span class="badge">uint32 · encrypted</span>
+              </div>
+              <div class="input-shell">
+                <input id="adminMinContribution" type="number" min="0" max="4294967295" placeholder="e.g. 1000" />
+                <span class="input-unit">points</span>
+              </div>
+            </div>
+            <button id="adminSetBadgeBtn" class="btn secondary">
+              Encrypt &amp; create / update badge
+            </button>
+            <div id="adminStatus" class="helper"></div>
+          </div>
+
+          <div class="side-footer">
+            The contract uses <span class="mono">FHE.ge</span> to compare encrypted contributions to encrypted thresholds. You can adjust badges at any time without revealing any numbers.
+          </div>
+        </section>
+
+        <section class="side-card">
+          <div class="side-header">
+            <div class="side-title">
+              <span class="side-icon">?</span>
+              How privacy is enforced
+            </div>
+          </div>
+          <div class="side-body">
+            <ul>
+              <li>Contributions and OG thresholds are encrypted off-chain and passed as ciphertext handles.</li>
+              <li>The contract only stores encrypted values and computes OG / non-OG entirely under FHE.</li>
+              <li>You decrypt your own state via <span class="mono">userDecrypt</span> with a short-lived keypair and EIP-712 signature.</li>
+              <li>There is no public certificate: OG status is visible only to the wallet owner.</li>
+            </ul>
+          </div>
+        </section>
+      </aside>
+    </div>
   </div>
 
+  <!-- Ethers + Relayer SDK -->
   <script type="module">
-    // ===== Net & endpoints =====
-    const CONTRACT_ADDRESS = '0x7F658EDaddFC0dfb8a68021dD8855d1B34a36CC3';
-    const CHAIN_ID_HEX = '0xaa36a7';
+    import { BrowserProvider, Contract } from "https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm";
+    import { initSDK, createInstance, SepoliaConfig, generateKeypair } from "https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.js";
 
-    // Try to use local reverse-proxy if available, else direct Zama endpoints
-    const ORIGIN = window.location.origin;
-    const HAS_LOCAL_PROXY = ORIGIN.includes('localhost:3443') || ORIGIN.includes('127.0.0.1:3443');
-    const RELAYER_URL = HAS_LOCAL_PROXY ? `${ORIGIN}/relayer` : 'https://relayer.testnet.zama.org';
-    const GATEWAY_URL = HAS_LOCAL_PROXY ? `${ORIGIN}/gateway` : 'https://gateway.testnet.zama.org';
-
-    const $ = (q)=>document.querySelector(q);
-    const btnConnect=$('#btn-connect'), netPill=$('#net-pill'), isOwnerPill=$('#isOwnerPill');
-    const caddrEl=$('#caddr'), cownerEl=$('#cowner'), accEl=$('#acc'), relayerStateEl=$('#relayerState');
-    const planIdEl=$('#planId'), kycEl=$('#kyc'), tenureEl=$('#tenure'), volumeEl=$('#volume'), btnEval=$('#btn-eval');
-    const decisionBox=$('#decisionBox'), handleOut=$('#handleOut'), btnCopy=$('#btn-copy');
-    const btnMakePublic=$('#btn-make-public'), btnPublicDecrypt=$('#btn-public-decrypt'), btnUserDecrypt=$('#btn-user-decrypt');
-    const pPlanEl=$('#p-plan'), pKycEl=$('#p-kyc'), pTenureEl=$('#p-tenure'), pVolEl=$('#p-volume'), pPassEl=$('#p-pass'), btnSetPolicy=$('#btn-set-policy');
-    const lastHandleEl=$('#lastHandle');
-
-    const [{ BrowserProvider, Contract }, relayerSdk] = await Promise.all([
-      import('https://cdn.jsdelivr.net/npm/ethers@6.15.0/+esm'),
-      import('https://cdn.zama.org/relayer-sdk-js/0.3.0-5/relayer-sdk-js.js')
-    ]);
-    const { initSDK, createInstance, SepoliaConfig, generateKeypair } = relayerSdk;
     await initSDK();
 
-    const IS_HTTPS = location.protocol === 'https:';
-    if(!IS_HTTPS){ relayerStateEl.innerHTML = '<span class="bad">not https (signed decrypt disabled)</span>'; btnUserDecrypt.disabled = true; }
+    /* ---------- CONFIG ---------- */
+    const CONTRACT_ADDRESS = "0xDF1b0dD09d05E196b74605F8b203c07a2027f2Ac";
+    const CHAIN_ID_HEX = "0xaa36a7"; // Ethereum Sepolia
 
+    const ORIGIN = window.location.origin;
+    const HAS_LOCAL_PROXY =
+      ORIGIN.includes("localhost:3443") || ORIGIN.includes("127.0.0.1:3443");
+    const RELAYER_URL = HAS_LOCAL_PROXY ? `${ORIGIN}/relayer` : "https://relayer.testnet.zama.org";
+    const GATEWAY_URL = HAS_LOCAL_PROXY ? `${ORIGIN}/gateway` : "https://gateway.testnet.zama.org";
+
+    const IS_HTTPS = location.protocol === "https:";
+
+    // ABI for EncryptedOgRoles
     const ABI = [
-      { inputs:[], stateMutability:'view', type:'function', name:'owner', outputs:[{type:'address'}] },
-      { inputs:[{name:'planId',type:'uint256'}], stateMutability:'view', type:'function', name:'hasPolicy', outputs:[{type:'bool'}] },
-      { inputs:[{name:'planId',type:'uint256'},{name:'kycLevelExt',type:'bytes32'},{name:'tenureDaysExt',type:'bytes32'},{name:'volumeUsdExt',type:'bytes32'},{name:'proof',type:'bytes'}], name:'evaluateEligibilityEncrypted', outputs:[{type:'bytes32'}], stateMutability:'nonpayable', type:'function' },
-      { inputs:[{name:'planId',type:'uint256'},{name:'minKycLevelExt',type:'bytes32'},{name:'minTenureDaysExt',type:'bytes32'},{name:'minTradeVolumeUsdExt',type:'bytes32'},{name:'minPassRulesExt',type:'bytes32'},{name:'proof',type:'bytes'}], name:'setPolicyEncrypted', outputs:[], stateMutability:'nonpayable', type:'function' },
-      { inputs:[{name:'planId',type:'uint256'}], name:'getMyEligibilityHandle', outputs:[{type:'bytes32'}], stateMutability:'view', type:'function' },
-      { inputs:[{name:'planId',type:'uint256'}], name:'makeMyEligibilityPublic', outputs:[], stateMutability:'nonpayable', type:'function' }
+      { type: "function", name: "owner", stateMutability: "view", inputs: [], outputs: [{ type: "address" }] },
+      { type: "function", name: "transferOwnership", stateMutability: "nonpayable", inputs: [{ name: "newOwner", type: "address" }], outputs: [] },
+
+      { type: "function", name: "createOgBadge", stateMutability: "nonpayable", inputs: [
+          { name: "badgeId", type: "uint256" },
+          { name: "encMinScore", type: "bytes32" },
+          { name: "proof", type: "bytes" }
+        ], outputs: [] },
+
+      { type: "function", name: "updateOgBadge", stateMutability: "nonpayable", inputs: [
+          { name: "badgeId", type: "uint256" },
+          { name: "encMinScore", type: "bytes32" },
+          { name: "proof", type: "bytes" }
+        ], outputs: [] },
+
+      { type: "function", name: "getBadgeMeta", stateMutability: "view", inputs: [
+          { name: "badgeId", type: "uint256" }
+        ], outputs: [
+          { type: "bool" }
+        ] },
+
+      { type: "function", name: "evaluateOgStatus", stateMutability: "nonpayable", inputs: [
+          { name: "badgeId", type: "uint256" },
+          { name: "encContribution", type: "bytes32" },
+          { name: "proof", type: "bytes" }
+        ], outputs: [] },
+
+      { type: "function", name: "getMyOgStatusHandles", stateMutability: "view", inputs: [
+          { name: "badgeId", type: "uint256" }
+        ], outputs: [
+          { type: "bytes32" },
+          { type: "bytes32" },
+          { type: "bool" }
+        ] },
+
+      { type: "function", name: "getBadgePolicyHandle", stateMutability: "view", inputs: [
+          { name: "badgeId", type: "uint256" }
+        ], outputs: [
+          { type: "bytes32" }
+        ] }
     ];
 
-    let provider=null, signer=null, contract=null, relayer=null;
-    let currentAccount=null, ownerAddr=null;
+    /* ---------- DOM ---------- */
+    const $ = (id) => document.getElementById(id);
 
-    const tag=(t,ok)=>`<span class="tag ${ok?'ok':'bad'}">${t}</span>`;
-    const setDecision=(txt,ok=null)=>{
-      if(ok===true) decisionBox.innerHTML=`Decision: ${tag('ELIGIBLE',true)} <span class="muted small">(${txt})</span>`;
-      else if(ok===false) decisionBox.innerHTML=`Decision: ${tag('NOT ELIGIBLE',false)} <span class="muted small">(${txt})</span>`;
-      else decisionBox.innerHTML='Decision: <span class="tag">n/a</span>';
+    const netLabelEl         = $("netLabel");
+    const contractLabelEl    = $("contractLabel");
+    const contractFullLabelEl= $("contractFullLabel");
+    const accountLabelEl     = $("accountLabel");
+    const connectBtn         = $("connectBtn");
+    const connectBtnLabelEl  = $("connectBtnLabel");
+
+    const decryptTagEl       = $("decryptTag");
+    const badgeMetaTagEl     = $("badgeMetaTag");
+
+    const userBadgeIdEl      = $("userBadgeId");
+    const userContributionEl = $("userContribution");
+    const submitContributionBtn = $("submitContributionBtn");
+    const userSubmitStatusEl = $("userSubmitStatus");
+
+    const decryptStatusBtn   = $("decryptStatusBtn");
+    const resultOgFlagEl            = $("resultOgFlag");
+    const resultOgFlagHandleEl      = $("resultOgFlagHandle");
+    const localOgNoteEl      = $("localOgNote");
+
+    const adminBadgeIdEl     = $("adminBadgeId");
+    const adminMinContributionEl = $("adminMinContribution");
+    const adminSetBadgeBtn   = $("adminSetBadgeBtn");
+    const adminStatusEl      = $("adminStatus");
+    const adminRoleTagEl     = $("adminRoleTag");
+
+    contractLabelEl.textContent = shortenAddress(CONTRACT_ADDRESS);
+    contractFullLabelEl.textContent = CONTRACT_ADDRESS;
+
+    /* ---------- STATE ---------- */
+    const state = {
+      provider: null,
+      signer: null,
+      contract: null,
+      relayer: null,
+      userAddress: null,
+      owner: null
     };
-    const short=(a)=>a?a.slice(0,6)+'…'+a.slice(-4):'—';
 
-    async function ensureSepolia(){
-      const id = await window.ethereum.request({ method:'eth_chainId' });
-      netPill.textContent = 'Network: ' + (id||'—');
-      if(id?.toLowerCase()!==CHAIN_ID_HEX){
-        try{ await window.ethereum.request({ method:'wallet_switchEthereumChain', params:[{ chainId: CHAIN_ID_HEX }] }); }catch(e){}
-      }
-      const now = await window.ethereum.request({ method:'eth_chainId' });
-      netPill.textContent = 'Network: ' + (now||'—');
+    /* ---------- HELPERS: logging & BigInt ---------- */
+
+    const safeStringify = (obj) =>
+      JSON.stringify(obj, (k, v) => (typeof v === "bigint" ? v.toString() + "n" : v), 2);
+
+    function appendLog(...parts) {
+      const msg = parts
+        .map((x) =>
+          typeof x === "string"
+            ? x
+            : (() => {
+                try {
+                  return safeStringify(x);
+                } catch {
+                  return String(x);
+                }
+              })()
+        )
+        .join(" ");
+      console.log("[OG-frontend]", msg);
     }
 
-    async function connect(){
-      if(!window.ethereum?.request){ alert('Install MetaMask'); return; }
-      await window.ethereum.request({ method:'eth_requestAccounts' });
-      await ensureSepolia();
-
-      provider = new BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      currentAccount = await signer.getAddress();
-      accEl.textContent = short(currentAccount);
-
-      contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
-      caddrEl.textContent = CONTRACT_ADDRESS;
-
-      try{ ownerAddr = await contract.owner(); cownerEl.textContent = short(ownerAddr); }
-      catch{ ownerAddr = null; cownerEl.textContent = '—'; }
-      isOwnerPill.textContent = 'owner: ' + (ownerAddr && currentAccount && ownerAddr.toLowerCase()===currentAccount.toLowerCase() ? 'yes' : 'no');
-
-      relayer = await createInstance({ ...SepoliaConfig, relayerUrl: RELAYER_URL, gatewayUrl: GATEWAY_URL, network: window.ethereum, debug: true });
-      relayerStateEl.textContent = 'ready' + (IS_HTTPS ? '' : ' (limited)') + (HAS_LOCAL_PROXY ? ' (proxy)' : '');
-      btnConnect.textContent = 'Disconnect';
+    function normalizeDecryptedValue(v) {
+      if (v == null) return null;
+      if (typeof v === "boolean") return v ? 1n : 0n;
+      if (typeof v === "bigint" || typeof v === "number") return BigInt(v);
+      if (typeof v === "string") return BigInt(v);
+      return BigInt(v.toString());
     }
 
-    function disconnect(){
-      provider=signer=contract=relayer=null; currentAccount=null;
-      accEl.textContent='—'; btnConnect.textContent='Connect'; relayerStateEl.textContent='not ready';
-      setDecision(''); lastHandleEl.textContent='—'; handleOut.value='';
+    function shortenAddress(addr) {
+      if (!addr) return "—";
+      return addr.slice(0, 6) + "…" + addr.slice(-4);
     }
 
-    btnConnect.addEventListener('click', async()=>{ if(signer) disconnect(); else await connect(); });
-    btnCopy.addEventListener('click', async()=>{ if(!handleOut.value) return; await navigator.clipboard.writeText(handleOut.value); btnCopy.textContent='Copied'; setTimeout(()=>btnCopy.textContent='Copy',900); });
-
-    // ===== Helpers for decrypt =====
-    function normalizePublicDecryptResult(out, handleHex){
-      if(Array.isArray(out)){
-        const first = out[0];
-        return typeof first === 'string' ? first : (first?.value ?? null);
+    function normalizeChainId(id) {
+      if (!id) return "";
+      const s = String(id);
+      if (/^\d+$/.test(s)) {
+        return "0x" + BigInt(s).toString(16);
       }
-      if(out && typeof out==='object'){
-        const k = handleHex?.toLowerCase?.();
-        const v = out[handleHex] ?? out[k];
-        return (typeof v==='object' && v!==null && 'value' in v) ? v.value : v;
-      }
-      return null;
+      return s.toLowerCase();
     }
 
-    async function smartDecrypt(handleHex, mode='auto'){
-      if(!relayer || !contract) throw new Error('Connect wallet first');
-      const pair = { handle: String(handleHex), contractAddress: CONTRACT_ADDRESS };
+    async function ensureSepolia() {
+      if (!window.ethereum?.request) return false;
+      let current = normalizeChainId(
+        await window.ethereum.request({ method: "eth_chainId" }).catch(() => null)
+      );
+      netLabelEl.textContent = current || "unknown";
+      if (current === CHAIN_ID_HEX) return true;
 
-      // 1) public (pairs)
-      if(mode==='auto' || mode==='public'){
-        try{
-          const out = await relayer.publicDecrypt([pair]);
-          const v = normalizePublicDecryptResult(out, String(handleHex));
-          if(v!=null) return BigInt(v)===1n;
-        }catch(e){ if(mode==='public') throw e; }
-
-        // 2) public (handles only)
-        try{
-          const out2 = await relayer.publicDecrypt([String(handleHex)]);
-          const v2 = normalizePublicDecryptResult(out2, String(handleHex));
-          if(v2!=null) return BigInt(v2)===1n;
-        }catch(e){ if(mode==='public') throw e; }
+      try {
+        await window.ethereum.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: CHAIN_ID_HEX }]
+        });
+      } catch (e) {
+        if (e && e.code === 4902) {
+          await window.ethereum.request({
+            method: "wallet_addEthereumChain",
+            params: [
+              {
+                chainId: CHAIN_ID_HEX,
+                chainName: "Sepolia",
+                nativeCurrency: { name: "Sepolia ETH", symbol: "SEP", decimals: 18 },
+                rpcUrls: ["https://rpc.sepolia.org"],
+                blockExplorerUrls: ["https://sepolia.etherscan.io"]
+              }
+            ]
+          });
+          await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{ chainId: CHAIN_ID_HEX }]
+          });
+        } else {
+          throw e;
+        }
       }
 
-      // 3) signed userDecrypt
-      if(mode!=='public'){
-        if(!IS_HTTPS) throw new Error('Open over HTTPS to use signed decrypt');
-        const kp = await generateKeypair();
-        const startTs = Math.floor(Date.now()/1000).toString();
-        const daysValid = '7';
-        const eip = relayer.createEIP712(kp.publicKey, [CONTRACT_ADDRESS], startTs, daysValid);
-        const sig = await signer.signTypedData(eip.domain, { UserDecryptRequestVerification: eip.types.UserDecryptRequestVerification }, eip.message);
-        const out = await relayer.userDecrypt(
-          [pair],
-          kp.privateKey, kp.publicKey, sig.replace('0x',''),
-          [CONTRACT_ADDRESS], await signer.getAddress(), startTs, daysValid
-        );
-        const picked = out[String(handleHex)] ?? out[String(handleHex).toLowerCase()];
-        if(picked==null) throw new Error('userDecrypt returned empty');
-        return BigInt(picked)===1n;
-      }
-
-      throw new Error('Decrypt failed');
+      const after = normalizeChainId(
+        await window.ethereum.request({ method: "eth_chainId" }).catch(() => null)
+      );
+      netLabelEl.textContent = after || "unknown";
+      return after === CHAIN_ID_HEX;
     }
 
-    // === Encrypt & Evaluate (NO auto-decrypt earlier; now we auto-try) ===
-    btnEval.addEventListener('click', async()=>{
-      try{
-        if(!signer || !contract || !relayer) throw new Error('Connect wallet first');
-        const planId = BigInt(planIdEl.value||'0');
-        const kyc = Number(kycEl.value||'0')|0;
-        const tenure = Number(tenureEl.value||'0')|0;
-        const volume = Number(volumeEl.value||'0')|0;
-        if(planId<=0n) throw new Error('Bad planId');
+    function buildValuePicker(out, handles) {
+      let map = {};
+      const cv = out && out.clearValues;
+      if (Array.isArray(cv) && handles && handles.length) {
+        handles.forEach((h, i) => {
+          const key = String(h).toLowerCase();
+          map[key] = cv[i];
+        });
+      }
+      if (!Object.keys(map).length && out && typeof out === "object") {
+        map = out;
+      }
+      return (handle) => {
+        if (!handle) return null;
+        const k1 = String(handle);
+        const k2 = k1.toLowerCase();
+        const v = map[k2] ?? map[k1] ?? null;
+        return v;
+      };
+    }
 
-        setDecision('encrypting …');
-        const enc = relayer.createEncryptedInput(CONTRACT_ADDRESS, currentAccount);
-        enc.add8(kyc); enc.add16(tenure); enc.add32(volume);
-        const { handles, inputProof } = await enc.encrypt();
+    async function userDecryptMany(relayer, signer, pairs) {
+      const kp = await generateKeypair();
+      const startTs = Math.floor(Date.now() / 1000).toString();
+      const daysValid = "7";
 
-        const tx = await contract.evaluateEligibilityEncrypted(planId, handles[0], handles[1], handles[2], inputProof);
-        await tx.wait();
+      const eip = relayer.createEIP712(kp.publicKey, [CONTRACT_ADDRESS], startTs, daysValid);
+      const sig = await signer.signTypedData(
+        eip.domain,
+        { UserDecryptRequestVerification: eip.types.UserDecryptRequestVerification },
+        eip.message
+      );
 
-        const h = await contract.getMyEligibilityHandle(planId);
-        handleOut.value = h; lastHandleEl.textContent = h;
+      const userAddr = await signer.getAddress();
+      const out = await relayer.userDecrypt(
+        pairs,
+        kp.privateKey,
+        kp.publicKey,
+        sig.replace(/^0x/, ""),
+        [CONTRACT_ADDRESS],
+        userAddr,
+        startTs,
+        daysValid
+      );
+      appendLog("userDecrypt result:", out);
+      return out;
+    }
 
-        // AUTO decrypt cascade right after evaluation
-        try{
-          const ok = await smartDecrypt(h, 'auto');
-          setDecision('auto decrypt', ok);
-        }catch(e){ setDecision('stored handle — use buttons to decrypt'); }
-      }catch(e){ console.error(e); alert(e?.message||'Failed'); setDecision('error'); }
+    function updateDecryptTag() {
+      if (!decryptTagEl) return;
+      if (IS_HTTPS) {
+        decryptTagEl.textContent = "private decrypt: HTTPS ✓";
+        decryptTagEl.classList.remove("warn");
+        decryptTagEl.classList.add("ok");
+      } else {
+        decryptTagEl.textContent = "private decrypt: open via HTTPS for full support";
+        decryptTagEl.classList.remove("ok");
+        decryptTagEl.classList.add("warn");
+      }
+    }
+
+    function updateBadgeMetaTag(badgeId, exists) {
+      if (!badgeMetaTagEl) return;
+      if (!badgeId) {
+        badgeMetaTagEl.textContent = "badge: n/a";
+        return;
+      }
+      badgeMetaTagEl.textContent = exists
+        ? `badge: ${badgeId} • configured`
+        : `badge: ${badgeId} • not configured on-chain`;
+    }
+
+    function clearUserResults(clearHandles = true) {
+      resultOgFlagEl.textContent = "—";
+      resultOgFlagEl.classList.remove("good", "bad");
+      if (clearHandles) {
+        resultOgFlagHandleEl.textContent = "Handle: —";
+      }
+    }
+
+    /* ---------- CONNECTION ---------- */
+
+    connectBtn.addEventListener("click", async () => {
+      if (state.signer) {
+        await disconnectWallet();
+      } else {
+        await connectWallet();
+      }
     });
 
-    // Make public (on-chain)
-    btnMakePublic.addEventListener('click', async()=>{
-      try{
-        if(!signer || !contract) throw new Error('Connect wallet first');
-        const planId = BigInt(planIdEl.value||'0');
-        const tx = await contract.makeMyEligibilityPublic(planId);
-        await tx.wait();
-        const h = await contract.getMyEligibilityHandle(planId);
-        handleOut.value = h; lastHandleEl.textContent = h;
-        setDecision('made public — now try Decrypt (public)');
-      }catch(e){ console.error(e); alert(e?.message||'Failed'); }
-    });
+    async function connectWallet() {
+      try {
+        if (!window.ethereum?.request) {
+          alert("Please install MetaMask or another EIP-1193 wallet.");
+          return;
+        }
+        await ensureSepolia();
 
-    // === Replaced handlers: use smartDecrypt ===
-    btnPublicDecrypt.addEventListener('click', async()=>{
-      try{
-        const planId = BigInt(planIdEl.value||'0');
-        const h = handleOut.value || await contract.getMyEligibilityHandle(planId);
-        if(!h || String(h)==='0x'+'0'.repeat(64)) throw new Error('No decision handle. Evaluate first.');
-        const ok = await smartDecrypt(String(h), 'public');
-        setDecision('public decrypt', ok);
-      }catch(e){ console.error('public decrypt failed:', e); alert(e?.message||'Public decrypt failed'); setDecision('error'); }
-    });
+        const provider = new BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const signer = await provider.getSigner();
+        const userAddress = await signer.getAddress();
+        const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
 
-    btnUserDecrypt.addEventListener('click', async()=>{
-      try{
-        const planId = BigInt(planIdEl.value||'0');
-        const h = handleOut.value || await contract.getMyEligibilityHandle(planId);
-        if(!h || String(h)==='0x'+'0'.repeat(64)) throw new Error('No decision handle');
-        const ok = await smartDecrypt(String(h), 'signed');
-        setDecision('signed decrypt', ok);
-      }catch(e){ console.error(e); alert(e?.message||'Failed'); }
-    });
+        appendLog("Creating Relayer instance…");
+        const relayer = await createInstance({
+          ...SepoliaConfig,
+          relayerUrl: RELAYER_URL,
+          gatewayUrl: GATEWAY_URL,
+          network: window.ethereum,
+          debug: true
+        });
 
-    // === Admin: set encrypted policy ===
-    btnSetPolicy.addEventListener('click', async()=>{
-      try{
-        if(!signer || !contract || !relayer) throw new Error('Connect wallet first');
-        if(!ownerAddr || ownerAddr.toLowerCase()!== (await signer.getAddress()).toLowerCase()) throw new Error('Owner only');
-        const planId = BigInt(pPlanEl.value||'0');
-        const a=Number(pKycEl.value||'0')|0, b=Number(pTenureEl.value||'0')|0, c=Number(pVolEl.value||'0')|0, d=Number(pPassEl.value||'0')|0;
-        if(planId<=0n) throw new Error('Bad planId');
+        state.provider = provider;
+        state.signer = signer;
+        state.contract = contract;
+        state.relayer = relayer;
+        state.userAddress = userAddress;
 
-        const buf = relayer.createEncryptedInput(CONTRACT_ADDRESS, await signer.getAddress());
-        buf.add8(a); buf.add16(b); buf.add32(c); buf.add8(d);
+        connectBtnLabelEl.textContent = "Disconnect";
+        accountLabelEl.textContent = shortenAddress(userAddress);
+
+        try {
+          state.owner = await contract.owner();
+          const isOwner = state.owner.toLowerCase() === userAddress.toLowerCase();
+          if (isOwner) {
+            adminRoleTagEl.textContent = "role: owner";
+            adminRoleTagEl.classList.add("owner");
+          } else {
+            adminRoleTagEl.textContent = "role: viewer";
+            adminRoleTagEl.classList.remove("owner");
+          }
+          appendLog("Owner address:", state.owner);
+        } catch (e) {
+          appendLog("Failed to read owner():", e?.message || e);
+          adminRoleTagEl.textContent = "role: unknown";
+          adminRoleTagEl.classList.remove("owner");
+        }
+
+        appendLog("Relayer ready", { relayerUrl: RELAYER_URL, gatewayUrl: GATEWAY_URL });
+        updateDecryptTag();
+      } catch (e) {
+        const msg = e?.reason || e?.shortMessage || e?.message || String(e);
+        appendLog("connectWallet error:", msg);
+        alert(msg);
+      }
+    }
+
+    async function disconnectWallet() {
+      state.provider = null;
+      state.signer = null;
+      state.contract = null;
+      state.relayer = null;
+      state.userAddress = null;
+      state.owner = null;
+
+      connectBtnLabelEl.textContent = "Connect wallet";
+      accountLabelEl.textContent = "not connected";
+      adminRoleTagEl.textContent = "role: unknown";
+      adminRoleTagEl.classList.remove("owner");
+      clearUserResults(true);
+      userSubmitStatusEl.textContent = "";
+      adminStatusEl.textContent = "";
+      appendLog("Disconnected");
+    }
+
+    /* ---------- USER: SUBMIT CONTRIBUTION ---------- */
+
+    submitContributionBtn.addEventListener("click", async () => {
+      try {
+        if (!state.contract || !state.relayer || !state.signer || !state.userAddress) {
+          throw new Error("Connect wallet first.");
+        }
+        userSubmitStatusEl.textContent = "";
+        userSubmitStatusEl.classList.remove("error", "success");
+        clearUserResults(false);
+
+        const badgeIdRaw = userBadgeIdEl.value.trim();
+        const contributionRaw = userContributionEl.value.trim();
+        const badgeId = Number(badgeIdRaw);
+        const contribution = Number(contributionRaw);
+
+        if (!Number.isInteger(badgeId) || badgeId <= 0) {
+          throw new Error("Badge ID must be a positive integer.");
+        }
+        if (!Number.isFinite(contribution) || contribution < 0 || contribution > 4294967295) {
+          throw new Error("Contribution must be between 0 and 4,294,967,295.");
+        }
+
+        appendLog("Encrypting contribution", { badgeId, contribution });
+        const buf = state.relayer.createEncryptedInput(CONTRACT_ADDRESS, state.userAddress);
+        buf.add32(contribution);
         const { handles, inputProof } = await buf.encrypt();
+        appendLog("Encrypted handle:", handles[0]);
 
-        const tx = await contract.setPolicyEncrypted(planId, handles[0], handles[1], handles[2], handles[3], inputProof);
-        await tx.wait(); alert('Policy set ✓');
-      }catch(e){ console.error(e); alert(e?.message||'Failed'); }
+        const tx = await state.contract.evaluateOgStatus(
+          BigInt(badgeId),
+          handles[0],
+          inputProof
+        );
+        userSubmitStatusEl.textContent = "Transaction sent: " + tx.hash.slice(0, 10) + "…";
+        appendLog("evaluateOgStatus tx:", tx.hash);
+
+        await tx.wait();
+        userSubmitStatusEl.textContent = "Contribution submitted ✓";
+        userSubmitStatusEl.classList.add("success");
+
+        // Refresh badge meta tag if possible
+        try {
+          const exists = await state.contract.getBadgeMeta(BigInt(badgeId));
+          updateBadgeMetaTag(badgeId, !!exists);
+        } catch {
+          updateBadgeMetaTag(badgeId, false);
+        }
+      } catch (e) {
+        const msg = e?.reason || e?.shortMessage || e?.message || String(e);
+        userSubmitStatusEl.textContent = msg;
+        userSubmitStatusEl.classList.add("error");
+        appendLog("evaluateOgStatus error:", msg);
+      }
     });
 
-    if(window.ethereum){
-      window.ethereum.on?.('accountsChanged', ()=>location.reload());
-      window.ethereum.on?.('chainChanged', ()=>location.reload());
-      try{ const a = await window.ethereum.request({ method:'eth_accounts' }); if(a && a.length) await connect(); }catch{}
+    /* ---------- USER: DECRYPT OG STATUS ---------- */
+
+    decryptStatusBtn.addEventListener("click", async () => {
+      try {
+        if (!state.contract || !state.relayer || !state.signer) {
+          throw new Error("Connect wallet first.");
+        }
+        if (!IS_HTTPS) {
+          appendLog("userDecrypt requested on non-HTTPS origin.");
+        }
+
+        const badgeIdRaw = userBadgeIdEl.value.trim();
+        const badgeId = Number(badgeIdRaw || "0");
+        if (!Number.isInteger(badgeId) || badgeId <= 0) {
+          throw new Error("Badge ID must be a positive integer.");
+        }
+
+        appendLog("Fetching my OG status handles for badge", badgeId);
+        const res = await state.contract.getMyOgStatusHandles(BigInt(badgeId));
+        const contributionHandle = res?.[0];
+        const ogFlagHandle = res?.[1];
+        const decided = !!res?.[2];
+
+        if (!decided || !contributionHandle || !ogFlagHandle) {
+          clearUserResults(true);
+          localOgNoteEl.textContent =
+            "No evaluation recorded on-chain for this badge yet.";
+          return;
+        }
+
+        const pairs = [
+          { handle: contributionHandle, contractAddress: CONTRACT_ADDRESS },
+          { handle: ogFlagHandle, contractAddress: CONTRACT_ADDRESS }
+        ];
+
+        const out = await userDecryptMany(state.relayer, state.signer, pairs);
+        const pick = buildValuePicker(out, [contributionHandle, ogFlagHandle]);
+
+        const rawFlag = pick(ogFlagHandle);
+        const flagVal = normalizeDecryptedValue(rawFlag);
+        const isOg = (flagVal ?? 0n) !== 0n;
+
+        resultOgFlagEl.textContent = isOg ? "OG (true)" : "not OG (false)";
+        resultOgFlagEl.classList.remove("good", "bad");
+        resultOgFlagEl.classList.add(isOg ? "good" : "bad");
+
+        resultOgFlagHandleEl.textContent = "Handle: " + String(ogFlagHandle);
+
+        if (isOg) {
+          localOgNoteEl.textContent =
+            "You qualify for this OG badge based on your encrypted contribution.";
+        } else {
+          localOgNoteEl.textContent =
+            "You can resubmit a higher contribution score for this badge at any time.";
+        }
+      } catch (e) {
+        const msg = e?.reason || e?.shortMessage || e?.message || String(e);
+        appendLog("decrypt OG status error:", msg);
+        alert(msg);
+      }
+    });
+
+    /* ---------- ADMIN: CONFIGURE OG BADGES ---------- */
+
+    if (adminSetBadgeBtn) {
+      adminSetBadgeBtn.addEventListener("click", async () => {
+        try {
+          if (!state.contract || !state.relayer || !state.signer) {
+            throw new Error("Connect wallet first.");
+          }
+          adminStatusEl.textContent = "";
+          adminStatusEl.classList.remove("error", "success");
+
+          const me = state.userAddress || (await state.signer.getAddress());
+          if (!state.owner || state.owner.toLowerCase() !== me.toLowerCase()) {
+            throw new Error("Only contract owner can configure badges.");
+          }
+
+          const badgeIdRaw = adminBadgeIdEl.value.trim();
+          const minRaw = adminMinContributionEl.value.trim();
+          const badgeId = Number(badgeIdRaw);
+          const minContribution = Number(minRaw);
+
+          if (!Number.isInteger(badgeId) || badgeId <= 0) {
+            throw new Error("Badge ID must be a positive integer.");
+          }
+          if (!Number.isFinite(minContribution) || minContribution < 0 || minContribution > 4294967295) {
+            throw new Error("Minimum contribution must be between 0 and 4,294,967,295.");
+          }
+
+          appendLog("Admin: encrypt min contribution", { badgeId, minContribution });
+          adminStatusEl.textContent = "Encrypting…";
+
+          const buf = state.relayer.createEncryptedInput(CONTRACT_ADDRESS, me);
+          buf.add32(minContribution);
+          const { handles, inputProof } = await buf.encrypt();
+          appendLog("Admin: encrypted handle:", handles[0]);
+
+          // Check if badge exists
+          let exists = false;
+          try {
+            const meta = await state.contract.getBadgeMeta(BigInt(badgeId));
+            exists = !!meta;
+          } catch (e) {
+            appendLog("getBadgeMeta in admin failed (assuming new badge):", e?.message || e);
+          }
+
+          let tx;
+          if (!exists) {
+            appendLog("Calling createOgBadge…");
+            tx = await state.contract.createOgBadge(
+              BigInt(badgeId),
+              handles[0],
+              inputProof
+            );
+          } else {
+            appendLog("Calling updateOgBadge…");
+            tx = await state.contract.updateOgBadge(
+              BigInt(badgeId),
+              handles[0],
+              inputProof
+            );
+          }
+
+          adminStatusEl.textContent = "Tx sent: " + tx.hash.slice(0, 10) + "…";
+          appendLog("Admin badge tx:", tx.hash);
+          await tx.wait();
+
+          adminStatusEl.textContent = exists
+            ? "OG badge updated ✓"
+            : "OG badge created ✓";
+          adminStatusEl.classList.add("success");
+
+          // Update user badge meta tag if they use the same badge ID
+          const currentUserBadgeId = Number(userBadgeIdEl.value.trim() || "0");
+          if (currentUserBadgeId === badgeId) {
+            updateBadgeMetaTag(badgeId, true);
+          }
+        } catch (e) {
+          const msg = e?.reason || e?.shortMessage || e?.message || String(e);
+          adminStatusEl.textContent = msg;
+          adminStatusEl.classList.add("error");
+          appendLog("Admin set badge error:", msg);
+        }
+      });
+    }
+
+    /* ---------- INIT ---------- */
+
+    updateDecryptTag();
+    clearUserResults(true);
+    localOgNoteEl.textContent = "";
+
+    // auto-connect if already authorized
+    if (window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: "eth_accounts" });
+        if (accounts && accounts.length) {
+          appendLog("Wallet already authorized, auto-connecting…");
+          await connectWallet();
+        }
+      } catch (e) {
+        appendLog("Auto-connect failed:", e?.message || e);
+      }
+
+      window.ethereum.on?.("accountsChanged", () => {
+        location.reload();
+      });
+      window.ethereum.on?.("chainChanged", () => {
+        location.reload();
+      });
     }
   </script>
 </body>
